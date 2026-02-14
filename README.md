@@ -40,14 +40,27 @@ Text input is first processed by the tokenizer. Since neural networks work only 
 
 **How it works:**
 
+
+Let's start with a simplified task: digitalize all english words - give each word a unique ID. To build such a vocabuary of "word  -> ID" we download entire english Wikipedia corpus, walk through it giving new IDs unseen words. Once we finished, we find that the size of the vocabulary (and the corresponding IDs) is about half of a million! Large Language Models (LLMs) generating answers do this word-by-word, and after   
+
+
+A token is a part of word (similar to syllables) or punctuation sign (comma, question mark etc).  Goal - to find all unique tokens (similar to syllables)
+
+
+A token is a part of word (similar to syllables) or punctuation sign (comma, question mark etc). 
+
 1. **Text splitting:** The tokenizer divides text into tokens (similar to syllables)
 2. **Token dictionary:** Each token has a unique ID in the tokenizer's vocabulary
-3. **ID mapping:** Tokens are replaced with their corresponding IDs
-4. **Matrix creation:** A zero matrix is created where:
+
+
+1. **Text splitting:** The tokenizer divides text into tokens (similar to syllables)
+2. **Token dictionary:** Each token has a unique ID in the tokenizer's vocabulary
+4. **ID mapping:** Tokens are replaced with their corresponding IDs
+5. **Matrix creation:** A zero matrix is created where:
    - Columns = number of tokens in the text
    - Rows = total vocabulary size
-5. **One-hot encoding:** For each column (token position), the element at the token's ID is set to 1, the rest remin zero. 
-6. **Output:** Encoded matrix
+6. **One-hot encoding:** For each column (token position), the element at the token's ID is set to 1, the rest remin zero. 
+7. **Output:** Encoded matrix
 
 **Example:** Input text: `"Black cat sits on the mat"`
 
