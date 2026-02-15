@@ -124,7 +124,7 @@ Instead of storing the full one-hot vector, we **multiply it by an embedding mat
 - Result: Dense vector of 768 numbers representing "cat"
 
 ![Sample Output](https://github.com/Vlasenko2006/LoRA_study/blob/main/figs/embeddings.png)
-***Figure 1*** Schematic view on embedding. Huge matrix of encoded text is multiplied by a embedding's layer matrix resulting in a small embedded text.
+***Figure 1:*** Schematic view on embedding. Huge matrix of encoded text is multiplied by a embedding's layer matrix resulting in a small embedded text.
 
 
 ---
@@ -173,7 +173,7 @@ where `pos` is the position of the token in the text (0, 1, 2, ..., seq_len-1) a
 
 
 ![Sample Output](https://github.com/Vlasenko2006/LoRA_study/blob/main/figs/Attention_is_all_you_need_768.png)
-***Figure 2:*** Scheme of positional embedding of a sentence "What is your name? My name is Alex". For simplicity each word and punctiation is a token.  Each position gets its unique wave pattern. Compare two "is" wave patterns after "What"  and "name" on subfigures A and B. Compare also in these subbfigures wave patterns for two "name". Subfigure D shows the cross-section of wave patterns of some tokens. Figure   
+***Figure 2:*** Scheme of positional embedding of a sentence "What is your name? My name is Alex". For simplicity each word and punctiation is a token.  Each position gets its unique wave pattern. Compare two "is" wave patterns after "What"  and "name" on subfigures A and B. Compare also in these subbfigures wave patterns for two "name". Subfigure D shows the cross-section of wave patterns of some tokens. Subfigure C shows the Position similarity matrix. Dot product of tokens postions of keys and queries. It shows how far each tokes stays from the others.  
 
 
 
