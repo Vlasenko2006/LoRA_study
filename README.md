@@ -81,11 +81,11 @@ Given a text that comes to the model's input:
 
 1. **Input:** "Black cat sits on the mat"
 2. **Tokenize:** ["Black", " cat", " sit", "s", " on", " the", " mat"] (7 tokens)
-3. **Assign IDs:** [227, 404, 305, 892, 15, 278, 332] *(These are example IDs for illustration only)*
+3. **Assign IDs:** [9915, 441, 3797, 3075, 82, 319, 257, 2603] *(These are token IDs according to GPT2 tokenizer)*
 4. **Create matrix:** 7 columns × 50,000 rows (assuming 50,000 vocabulary size)
 5. **One-hot encode:** 
-   - Column 1, row 227 = 1 (all other rows in column 1 = 0)
-   - Column 2, row 404 = 1 (all other rows in column 2 = 0)
+   - Column 1, row 9915 = 1 (all other rows in column 1 = 0)
+   - Column 2, row 441 = 1 (all other rows in column 2 = 0)
    - And so on...
 
 **Result:** A sparse matrix of shape `[50,000 × 7]` where only 7 elements are 1, and the rest are 0.
