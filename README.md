@@ -197,8 +197,6 @@ By adding these positional encodings to the token embeddings, the transformer ca
 ![Sample Output](https://github.com/Vlasenko2006/LoRA_study/blob/main/figs/Attention_is_all_you_need_768.png)
 ***Figure 2:*** Scheme of positional embedding of a sentence "What is your name? My name is Alex". For simplicity each word and punctiation is a token.  Each position gets its unique wave pattern. Compare two "is" wave patterns after "What"  and "name" on subfigures A and B. Compare also in these subbfigures wave patterns for two "name". Subfigure D shows the cross-section of wave patterns of some tokens. Subfigure C shows the Position similarity matrix. Dot product of tokens postions of keys and queries. It shows how far each tokes stays from the others.  
 
-The `PE` is added to the compressed matrix and passed to the transformer blocks. 
-
 ---
 
 #### **3. Transformer Architecture**
@@ -220,13 +218,12 @@ Each attention head consists of multiple matrices `Q,K,V` (typically Query, Key,
 - Weight token importance based on context
 - Capture semantic meaning and dependencies
 
-**Simplified Example for `Q,K,V`:** Let `E` be the compressed matrix. A question-detection head might (but not must) work as follows:
+**Example for `Q,K,V`:** Let `E` be the compressed matrix. A question-detection head might (but not must) work as follows:
 We compute query and key matrices as follows `Q = E · W_q`, `K = E · W_k`, where `W_q, W_k` are trainable query and key matrices respectively.
 
 - Key matrix `K` assigns high weights to embeddings corresponding to question indicators, i.e., words like "what", "where", "which", question marks and auxiliary verbs, like "does/do", "is/are". 
 - Query matrix `Q` assigns high values to verb and subject tokens, since their presence and position strictly affect the type of sentence, i.e., verb conjugation and subject/verb word order changes in assertions and questions.
-- Multiplication `QK^T` does the first magic. Question indicators meet verb and subject embeddings giving multiplicative high scores. And here our `PE` plays a crucial role. Without `PE`, question words like "What" would give the same high score for any auxiliary verb "is", wherever it appears in the text. With `PE`, these scores are different. Moreover, `PE` consists of waves with various frequencies using `sin(pos / 10000^(2i/d_model))` and `cos(pos / 10000^(2i/d_model))`, which show how far tokens are from each other: short waves for close token analysis (i.e., question words and auxiliary verbs), longer waves for more distant tokens (i.e., "What" and "?"). The Transformer learns how `PE` works and becomes completely aware of token relations.
-
+- Multiplication `QK^T` does the first magic. Question indicators meet verb and subject embeddings giving multiplicative high scores. And here our `PE` plays a crucial role. Without `PE`, question words like "What" would give the same high score for any auxiliary verb "is", wherever it appears in the text. With `PE`, these scores are different. In short, since `Q = E · W_q`, `K = E · W_k` and `PE` is a part of `E`, then  `QK^T` is proportional to `PE * PEˆT`,  this matrix, according to panel C in Figure 2, measures how far all text words stay from the current word (main diagonal).
 - The next step computes activation function `softmax(QK^T / sqrt(d_k))`, where `sqrt(d_k)` is the normalization factor. 
 - Here occurs the final magic where the activation function output is multiplied by matrix of values `V`. The attention weights score how much each position should attend to others. If "What" (question indicator) and "is" (verb) have high attention score AND are at specific relative positions, "is" receives strong signal from V["What"], inheriting the "this is a question" context.
 
