@@ -162,21 +162,36 @@ PE(pos, 2i)   = sin(pos / 10000^(2i/d_model))    # even dimensions
 PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))    # odd dimensions
 ```
 
-where `pos` is the position of the token in the text (0, 1, 2, ..., seq_len-1) and `i` ranges over the embedding dimensions (i = 0, 1, 2, ..., d_model-1), with even indices using sine and odd indices using cosine. To see how it works cosnider
+where `pos` is the position of the token in the text (0, 1, 2, ..., seq_len-1) and `i` ranges over the embedding dimensions (i = 0, 1, 2, ..., d_model-1), with even indices using sine and odd indices using cosine. To see how it works cosnider:
 
-**Positional embedding of a string** "What is your name? My name is Alex". 
+**Positional embedding of a string (For simplicity, assume that each word is a token):** "What is your name? My name is Alex". 
 
-
-For simplicity, assume that each word is a token
 
 ```
-Tokens: ["what", "is", "your", "name", "?", "My", "name", "is", "Alex"]ˆ*
-Positions: [0, 1, 2, 3, 4, 5, 6, 7, 8]ˆ{**}
+Tokens: ["what", "is", "your", "name", "?", "My", "name", "is", "Alex"]
+Positions: [0, 1, 2, 3, 4, 5, 6, 7, 8]
 ```
 
-For simplicity, assume that each word is a token. Figure 2 (panels a,b and d) shows the wave patterns of positional embedding for this string. Each position gets its unique wave pattern. Compare two "is" wave patterns after "What"  and "name" on subfigures A and B. Compare also in these subbfigures wave patterns for two "name". Subfigure D shows the cross-section of wave patterns of some tokens.
+Figure 2 visualizes the positional encoding patterns for this sentence. Panel (a): Full positional encoding matrix showing all tokens and embedding dimensions. Each row represents a unique wave pattern for a specific position. Panel (b): First 64 dimensions showing the sine/cosine wave patterns more clearly. Notice how each position has a distinct pattern. Panel (c): Position similarity matrix showing how positional encodings relate to each other. The diagonal (brightest) shows that each position is most similar to itself. Off-diagonal elements show that nearby positions have higher similarity than distant positions. Panel (d): Cross-sections of wave patterns for selected tokens (positions 0, 2, 4, 6, 8). Each curve shows how the encoding values vary across dimensions for that specific position.
 
+**Key observations:**
 
+- **Each position gets a unique wave signature:**
+  - Position 0 ("what") has a distinct pattern
+  - Position 4 ("?") has a different pattern
+  - Position 8 ("Alex") has yet another pattern
+
+- **Same token, different positions have different patterns:**
+  - "is" at position 1 (after "what") has a different wave pattern than "is" at position 7 (after "name")
+  - "name" at position 3 has a different pattern than "name" at position 6
+  - This allows the model to distinguish between identical tokens based on their position
+
+- **Wave patterns vary across dimensions:**
+  - Early dimensions (left side of panels a, b) oscillate quickly
+  - Later dimensions (right side) oscillate slowly
+  - This multi-frequency approach encodes position information at different scales.
+
+By adding these positional encodings to the token embeddings, the transformer can now distinguish "is" at position 1 from "is" at position 7, even though the tokens themselves are identical. The model learns to use this positional information to understand word order and sequence structure.
 
 
 ![Sample Output](https://github.com/Vlasenko2006/LoRA_study/blob/main/figs/Attention_is_all_you_need_768.png)
