@@ -123,6 +123,10 @@ Instead of storing the full one-hot vector, we **multiply it by an embedding mat
 - Embedding lookup: Retrieve row 3797 from embedding matrix
 - Result: Dense vector of 768 numbers representing "cat"
 
+![Sample Output](https://github.com/Vlasenko2006/LoRA_study/blob/main/figs/embeddings.png)
+***Figure 1*** Schematic view on embedding. Huge matrix of encoded text is multiplied by a embedding's layer matrix resulting in a small embedded text.
+
+
 ---
 
 ## **Memory Savings:**
@@ -166,6 +170,12 @@ PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))    # odd dimensions
 ```
 
 where `pos` is the position of the token in the text (0, 1, 2, ..., seq_len-1) and `i` ranges over the embedding dimensions (i = 0, 1, 2, ..., d_model-1), with even indices using sine and odd indices using cosine. The `PE` is added to the compressed matrix and passed to the transformer blocks.
+
+
+![Sample Output](https://github.com/Vlasenko2006/LoRA_study/blob/main/figs/Attention_is_all_you_need_768.png)
+***Figure 2:*** Scheme of positional embedding of a sentence "What is your name? My name is Alex". For simplicity each word and punctiation is a token.  Each position gets its unique wave pattern. Compare two "is" wave patterns after "What"  and "name" on subfigures A and B. Compare also in these subbfigures wave patterns for two "name". Subfigure D shows the cross-section of wave patterns of some tokens. Figure   
+
+
 
 ---
 
