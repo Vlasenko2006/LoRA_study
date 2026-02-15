@@ -154,11 +154,7 @@ Both have the same tokens, just in different positions—but the meaning is comp
 
 **The solution:** To preserve word order information, we add **positional encoding** to the embedded tokens. This encoding injects information about each token's position in the sequence directly into its representation, allowing the transformer to "see" the text flow.
 
-### **How Positional Encoding Works**
-
 Positional encoding creates a matrix `PE` with shape `[sequence_length × d_model]` where each row contains a unique pattern that represents a specific position in the sequence. This matrix is then **added** (element-wise) to the embedded token matrix:
-
-
 
 
 ```
@@ -166,13 +162,27 @@ PE(pos, 2i)   = sin(pos / 10000^(2i/d_model))    # even dimensions
 PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))    # odd dimensions
 ```
 
-where `pos` is the position of the token in the text (0, 1, 2, ..., seq_len-1) and `i` ranges over the embedding dimensions (i = 0, 1, 2, ..., d_model-1), with even indices using sine and odd indices using cosine. The `PE` is added to the compressed matrix and passed to the transformer blocks.
+where `pos` is the position of the token in the text (0, 1, 2, ..., seq_len-1) and `i` ranges over the embedding dimensions (i = 0, 1, 2, ..., d_model-1), with even indices using sine and odd indices using cosine. To see how it works cosnider
+
+**Positional embedding of a string** "What is your name? My name is Alex". 
+
+
+For simplicity, assume that each word is a token
+
+```
+Tokens: ["what", "is", "your", "name", "?", "My", "name", "is", "Alex"]ˆ*
+Positions: [0, 1, 2, 3, 4, 5, 6, 7, 8]ˆ{**}
+```
+
+For simplicity, assume that each word is a token. Figure 2 (panels a,b and d) shows the wave patterns of positional embedding for this string. Each position gets its unique wave pattern. Compare two "is" wave patterns after "What"  and "name" on subfigures A and B. Compare also in these subbfigures wave patterns for two "name". Subfigure D shows the cross-section of wave patterns of some tokens.
+
+
 
 
 ![Sample Output](https://github.com/Vlasenko2006/LoRA_study/blob/main/figs/Attention_is_all_you_need_768.png)
 ***Figure 2:*** Scheme of positional embedding of a sentence "What is your name? My name is Alex". For simplicity each word and punctiation is a token.  Each position gets its unique wave pattern. Compare two "is" wave patterns after "What"  and "name" on subfigures A and B. Compare also in these subbfigures wave patterns for two "name". Subfigure D shows the cross-section of wave patterns of some tokens. Subfigure C shows the Position similarity matrix. Dot product of tokens postions of keys and queries. It shows how far each tokes stays from the others.  
 
-
+The `PE` is added to the compressed matrix and passed to the transformer blocks. 
 
 ---
 
