@@ -38,38 +38,36 @@ Let's first understand how LLMs are structured. The diagram below shows a simpli
 
 Text input is first processed by the tokenizer. Since neural networks work only with numbers, text must be converted into numerical sequences. The tokenizer handles this task.
 
-**How it works:**
+**Building a vocabluary of tokens:**
 
 
-Let's start with a simplified task: digitalize all english words - give each word a unique ID. To build such a vocabuary of "word  -> ID" we download entire english Wikipedia corpus, walk through it giving new IDs unseen words. Once we finished, we find that the size of the vocabulary (and the corresponding IDs) is about half of a million! We see later that this way of word organizing results in a huge memory consumption. Consider another way of words digitalization. English language has about 100,000 verbs in all forms (present, past, continious). Neglecting irregular verbs (which contain only 300 of this 100,000), we can reduce total amount of verbs in the dictionary by prescribing IDs only for their present form and giving 2 ID's for past. continious endings "ed" and "ing". To get the ID representation  of a verb either in past on in continiuous form we need now 2 IDs - ID for its present form and either its "ed" or "ing" IDs. This splitting results in reduction of the entire vocabluary from 500,000 to 433,000. Continue finding and splitting words by most frequent letter combinations with corresponding setting ID's to them we drastically reduce the space needed to present all english words as combinations of IDs in one vocabluary. This procedure is called tokeniozation where each derived letter combination is a token with it uinque id. The general rule of setting IDs to tokens is:
+Let's start with a simplified task: digitalize all english words - give each word a unique ID. To build such a vocabuary of "word  -> ID" we download entire english Wikipedia corpus, walk through it giving new IDs unseen words. Once we finished, we find that the size of the vocabulary (and the corresponding IDs) is about half of a million! We see later that this way of word organizing results in a huge memory consumption. Consider another way of words digitalization. English language has about 100,000 verbs in all forms (present, past, continious). Neglecting irregular verbs (which contain only 300 of this 100,000), we can reduce total amount of verbs in the dictionary by prescribing IDs only for their present form and giving 2 ID's for past. continious endings "ed" and "ing". To get the ID representation  of a verb either in past on in continiuous form we need now 2 IDs - ID for its present form and either its "ed" or "ing" IDs. This splitting results in reduction of the entire vocabluary from 500,000 to 433,000. Continue finding and splitting words by most frequent letter combinations with corresponding setting ID's to them we drastically reduce the space needed to present all english words as combinations of IDs in one vocabluary. This procedure is called tokeniozation where each derived letter combination is a token with it uinque id. Each model (GPT/Llama/Groq etc. ) has its own way of tokenization but the general rule of setting token IDs is:
 
 Lower IDs (0-255)     → Individual bytes/characters
 Medium IDs (256-1000) → Very common tokens 
 Higher IDs (1000+)    → Less common tokens
 
+Building up vocabluary is done once in the beginning, before (or on the phase) of model training. Once build, the vocabluary of tokens and token IDs remain the same for all model runs. 
 
-A token is a part of word (similar to syllables) or punctuation sign (comma, question mark etc). 
+**Tokenization of the input text:** 
 
-1. **Text splitting:** The tokenizer divides text into tokens (similar to syllables)
-2. **Token dictionary:** Each token has a unique ID in the tokenizer's vocabulary
-
-
-1. **Text splitting:** The tokenizer divides text into tokens (similar to syllables)
-2. **Token dictionary:** Each token has a unique ID in the tokenizer's vocabulary
-4. **ID mapping:** Tokens are replaced with their corresponding IDs
-5. **Matrix creation:** A zero matrix is created where:
+Given a text that comes on the model's input 
+1. **ID mapping:** Tokens are replaced with their corresponding IDs
+2. **Matrix creation:** A zero matrix is created where:
    - Columns = number of tokens in the text
    - Rows = total vocabulary size
-6. **One-hot encoding:** For each column (token position), the element at the token's ID is set to 1, the rest remin zero. 
-7. **Output:** Encoded matrix
+3. **One-hot encoding:** For each column (token position), the element at the token's ID is set to 1, the rest remin zero. 
+4. **Output:** Encoded matrix
+
+As you see, the size of encoded text depends on the vocabluary size. If we buid vocabulary IDs of words, this wou w it would be
 
 **Example:** Input text: `"Black cat sits on the mat"`
 
 1. **Input:** "Black cat sits on the mat"
 2. **Tokenize:** ["Bla", "ck", "cat", "sit", "s", "on", "the", "mat"]
-3. **Assign IDs:** [27, 104, 305, 892, 15, 78, 12, 456] (example IDs) - 8 in total. 
+3. **Assign IDs:** [227, 404, 305, 892, 15, 278, 332, 456] (example IDs, not really corresponding to any tokenization model) - 8 in total. 
 4. **Create matrix:** 8 columns × 4000 rows (assuming 4000 vocabulary size)
-5. **One-hot encode:** Column 1, row 27 = 1; Column 2, row 104 = 1, etc.
+5. **One-hot encode:** Column 1, row 227 = 1; Column 2, row 404 = 1, etc.
 
 ### 2. Embedding Layer
 
