@@ -65,7 +65,7 @@ The total number of tokens is typically around **50,000**, which is **10 times l
 
 # **Tokenization of Input Text**
 
-Given a text that comes to the model's input:
+After building vocabluary, we can encode any text. Here is howmit works. After a text comes to the model's input, the following happens:
 
 1. **Tokenization:** Text is split into tokens from the vocabulary
 2. **ID mapping:** Tokens are replaced with their corresponding IDs
@@ -107,7 +107,7 @@ To solve this, LLMs use an **embedding layer**—a learned lookup table that con
 
 ## **How Embedding Works:**
 
-Instead of storing the full one-hot vector, we **multiply it by an embedding matrix**:
+Instead of storing the full one-hot encoded matrix, we **multiply it by an embedding matrix**:
 
 **Embedding matrix shape:** `[vocab_size × d_model]`
 - **Rows:** Vocabulary size (e.g., 50,000)
@@ -115,13 +115,9 @@ Instead of storing the full one-hot vector, we **multiply it by an embedding mat
 
 **Mathematical operation:**
 
-**What this does:** Since the one-hot vector has only one element equal to 1 (at position corresponding to the token ID), the multiplication simply **retrieves the corresponding row** from the embedding matrix. This row is a dense 768-dimensional vector that represents the token.
+Formally, each matrix defines a linear space and when we multiply matrix ***A*** by matrix ***B*** we formally map ***A*** in the space of ***B***. Thus we map encoded text from sparse space into compact and dence one, see figure 1. This mappin is called embedding. 
 
-**Example:**
-- Token "cat" has ID 3797
-- One-hot vector: [0, 0, ..., 0, 1, 0, ..., 0] (1 at position 3797)
-- Embedding lookup: Retrieve row 3797 from embedding matrix
-- Result: Dense vector of 768 numbers representing "cat"
+
 
 ![Sample Output](https://github.com/Vlasenko2006/LoRA_study/blob/main/figs/embeddings.png)
 ***Figure 1:*** Schematic view on embedding. Huge matrix of encoded text is multiplied by a embedding's layer matrix resulting in a small embedded text.
