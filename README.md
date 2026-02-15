@@ -118,8 +118,8 @@ Instead of storing the full one-hot vector, we **multiply it by an embedding mat
 **What this does:** Since the one-hot vector has only one element equal to 1 (at position corresponding to the token ID), the multiplication simply **retrieves the corresponding row** from the embedding matrix. This row is a dense 768-dimensional vector that represents the token.
 
 **Example:**
-- Token "cat" has ID 404
-- One-hot vector: [0, 0, ..., 0, 1, 0, ..., 0] (1 at position 404)
+- Token "cat" has ID 3797
+- One-hot vector: [0, 0, ..., 0, 1, 0, ..., 0] (1 at position 3797)
 - Embedding lookup: Retrieve row 404 from embedding matrix
 - Result: Dense vector of 768 numbers representing "cat"
 
