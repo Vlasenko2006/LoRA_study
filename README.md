@@ -41,46 +41,124 @@ Text input is first processed by the tokenizer. Since neural networks work only 
 **Building a vocabluary of tokens:**
 
 
-Let's start with a simplified task: digitalize all english words - give each word a unique ID. To build such a vocabuary of "word  -> ID" we download entire english Wikipedia corpus, walk through it giving new IDs unseen words. Once we finished, we find that the size of the vocabulary (and the corresponding IDs) is about half of a million! We see later that this way of word organizing results in a huge memory consumption. Consider another way of words digitalization. English language has about 100,000 verbs in all forms (present, past, continious). Neglecting irregular verbs (which contain only 300 of this 100,000), we can reduce total amount of verbs in the dictionary by prescribing IDs only for their present form and giving 2 ID's for past. continious endings "ed" and "ing". To get the ID representation  of a verb either in past on in continiuous form we need now 2 IDs - ID for its present form and either its "ed" or "ing" IDs. This splitting results in reduction of the entire vocabluary from 500,000 to 433,000. Continue finding and splitting words by most frequent letter combinations with corresponding setting ID's to them we drastically reduce the space needed to present all english words as combinations of IDs in one vocabluary. This procedure is called tokeniozation where each derived letter combination is a token with it uinque id. Each model (GPT/Llama/Groq etc. ) has its own way of tokenization but the general rule of setting token IDs is:
+# **Building a Vocabulary of Tokens**
 
-Lower IDs (0-255)     → Individual bytes/characters
-Medium IDs (256-1000) → Very common tokens 
-Higher IDs (1000+)    → Less common tokens
+Let's start with a simplified task: digitalize all English words by giving each word a unique ID. To build such a vocabulary of "word → ID" mappings, we download the entire English Wikipedia corpus and walk through it, assigning new IDs to unseen words. Once finished, we find that the vocabulary size (and the corresponding number of IDs) is about **half a million**! As we'll see later, this word-level approach results in huge memory consumption.
 
-Building up vocabluary is done once in the beginning, before (or on the phase) of model training. Once build, the vocabluary of tokens and token IDs remain the same for all model runs. 
+Now consider an alternative approach to word digitalization. The English language has approximately **10,000-15,000 base verbs** (though with all forms—present, past, continuous, compounds—this expands to 50,000-100,000+). Looking at regular verbs, we notice a pattern: instead of storing separate IDs for "play," "played," and "playing," we could store just the base form "play" plus two suffix tokens: "ed" and "ing." This way, any verb form requires only 2 token IDs: one for the base and one for the suffix.
 
-**Tokenization of the input text:** 
+**Example reduction:**
+- Word-level: "play" (ID: 1), "played" (ID: 2), "playing" (ID: 3) → 3 IDs
+- Token-level: "play" (ID: 1), "ed" (ID: 2), "ing" (ID: 3) → Can represent all forms with just these 3 tokens!
 
-Given a text that comes on the model's input 
-1. **ID mapping:** Tokens are replaced with their corresponding IDs
-2. **Matrix creation:** A zero matrix is created where:
-   - Columns = number of tokens in the text
-   - Rows = total vocabulary size
-3. **One-hot encoding:** For each column (token position), the element at the token's ID is set to 1, the rest remin zero. 
-4. **Output:** Encoded matrix
+This splitting reduces vocabulary size. Continuing this process—finding and splitting words by the most frequent letter combinations and assigning IDs to them—we drastically reduce the space needed to represent all English words as combinations of token IDs in one vocabulary.
 
-As you see, the size of encoded text depends on the vocabluary size. If we buid vocabulary IDs of words, this wou w it would be
+This procedure is called **tokenization**, where each derived letter combination is a **token** with its unique ID. Each model (GPT-2, LLaMA, BERT, etc.) has its own tokenization method, but the general rule for assigning token IDs is:
 
-**Example:** Input text: `"Black cat sits on the mat"`
+- **IDs 0-255:** Individual bytes/characters (ensures any text can be represented)
+- **IDs 256-1000:** Very common tokens ("the," "ing," "ed," etc.)
+- **IDs 1000+:** Less common tokens
+
+The total number of tokens is typically around **50,000**, which is **10 times less** than the number of words in the English language. Building the vocabulary is done once at the beginning, before or during the initial phase of model training. Once built, the vocabulary of tokens and token IDs remains the same for all model runs.
+
+---
+
+# **Tokenization of Input Text**
+
+Given a text that comes to the model's input:
+
+1. **Tokenization:** Text is split into tokens from the vocabulary
+2. **ID mapping:** Tokens are replaced with their corresponding IDs
+3. **Matrix creation:** A zero matrix is created where:
+   - **Columns** = number of tokens in the text
+   - **Rows** = total vocabulary size
+4. **One-hot encoding:** For each column (token position), the element at row corresponding to the token's ID is set to 1; the rest remain zero
+5. **Output:** Encoded matrix
+
+---
+
+## **Example:** Input text: `"Black cat sits on the mat"`
 
 1. **Input:** "Black cat sits on the mat"
-2. **Tokenize:** ["Bla", "ck", "cat", "sit", "s", "on", "the", "mat"]
-3. **Assign IDs:** [227, 404, 305, 892, 15, 278, 332, 456] (example IDs, not really corresponding to any tokenization model) - 8 in total. 
-4. **Create matrix:** 8 columns × 4000 rows (assuming 4000 vocabulary size)
-5. **One-hot encode:** Column 1, row 227 = 1; Column 2, row 404 = 1, etc.
+2. **Tokenize:** ["Black", " cat", " sit", "s", " on", " the", " mat"] (7 tokens)
+3. **Assign IDs:** [227, 404, 305, 892, 15, 278, 332] *(These are example IDs for illustration only)*
+4. **Create matrix:** 7 columns × 50,000 rows (assuming 50,000 vocabulary size)
+5. **One-hot encode:** 
+   - Column 1, row 227 = 1 (all other rows in column 1 = 0)
+   - Column 2, row 404 = 1 (all other rows in column 2 = 0)
+   - And so on...
 
-### 2. Embedding Layer
+**Result:** A sparse matrix of shape `[50,000 × 7]` where only 7 elements are 1, and the rest are 0.
 
-Note that original text of 0.5 Mb after such matrix conversion would occupy 2Gb - which is a lot! To reduce its size LLM applies a special routine,  called "embedding". This is nothing but just matrix multiplication, where  **embedding matrix** projects the encoded matrix into more compact space and reduces its dimensionality  saving memory. Since the matrix multiplication is linear, no information lost during embedding. Typically the embedding matrix has the following properties:
+---
 
+# **2. Embedding Layer**
 
+As you can see, the encoded matrix size depends heavily on vocabulary size. Even with tokenization reducing the vocabulary from 500,000 words to 50,000 tokens, we still have a problem: a one-hot encoded matrix is extremely **sparse and memory-inefficient**.
 
-- **Embedding matrix rows:** Vocabulary size (e.g., 4000)
-- **Embedding matrix columns:** Transformer dimension `d_model`, typically 384-1024, (we will use 384)
+**The problem:** 
+- Original text: ~0.5 KB
+- After one-hot encoding: 7 tokens × 50,000 vocab size × 4 bytes = ~1.4 MB for just 7 tokens!
+- For a paragraph with 100 tokens: ~20 MB
 
-**Explanation:** The embedding matrix has shape `[vocab_size × d_model] = [4000 × 384]`. When you look up a token ID, you retrieve the corresponding row, which is a `d_model`-dimensional vector. 
+To solve this, LLMs use an **embedding layer**—a learned lookup table that converts sparse one-hot vectors into dense, compact representations.
 
-After embedding we get 8-tokent compressed matrix of the size 384 × 8 instead of initial 4000 × 8. To hardcode in the compressed matrix position of tokens in the text add positional embedding. How this procedure works we show in the next paragraph. Just for now, we create a matrix `PE` with the size [seq_len × d_model]::
+---
+
+## **How Embedding Works:**
+
+Instead of storing the full one-hot vector, we **multiply it by an embedding matrix**:
+
+**Embedding matrix shape:** `[vocab_size × d_model]`
+- **Rows:** Vocabulary size (e.g., 50,000)
+- **Columns:** Embedding dimension `d_model` (typically 384-1024; we'll use 768 for GPT-2)
+
+**Mathematical operation:**
+
+**What this does:** Since the one-hot vector has only one element equal to 1 (at position corresponding to the token ID), the multiplication simply **retrieves the corresponding row** from the embedding matrix. This row is a dense 768-dimensional vector that represents the token.
+
+**Example:**
+- Token "cat" has ID 404
+- One-hot vector: [0, 0, ..., 0, 1, 0, ..., 0] (1 at position 404)
+- Embedding lookup: Retrieve row 404 from embedding matrix
+- Result: Dense vector of 768 numbers representing "cat"
+
+---
+
+## **Memory Savings:**
+
+**Before embedding (one-hot):**
+- 7 tokens × 50,000 vocab size × 4 bytes = 1.4 MB
+
+**After embedding:**
+- 7 tokens × 768 dimensions × 4 bytes = 21.5 KB
+
+**Over 60× reduction in memory!**
+
+---
+
+## **Why Embedding is Better Than One-Hot:**
+
+1. **Memory efficiency:** Dense vectors (768 dim) vs sparse vectors (50,000 dim)
+2. **Semantic meaning:** Similar words have similar embeddings (e.g., "cat" and "kitten" have similar vectors)
+3. **Learnable:** The embedding matrix is trained with the model to capture meaningful relationships
+4. **Information preservation:** Despite dimensionality reduction, the embedding is learned to preserve relevant information for the task
+
+---
+
+## **Key Properties of the Embedding Matrix:**
+
+- **Shape:** `[vocab_size × d_model]` = `[50,000 × 768]` for GPT-2
+- **Learned during training:** Values are adjusted so tokens with similar meanings/usage have similar embeddings
+- **Fixed after training:** Once trained, the same embedding matrix is used for all inputs
+- **Acts as a lookup table:** Each token ID retrieves one row (the token's embedding vector)
+
+**Output of embedding layer:** A matrix of shape `[sequence_length × d_model]` 
+- For our example: `[7 × 768]` (7 tokens, each represented by 768 numbers)
+
+This compact representation now flows through the transformer layers for processing!
+
+After embedding we get 7-tokent compressed matrix of the size 768 × 7 instead of initial 50000 × 7. To hardcode in the compressed matrix position of tokens in the text add positional embedding. How this procedure works we show in the next paragraph. Just for now, we create a matrix `PE` with the size [seq_len × d_model]::
 
 ```
 PE(pos, 2i)   = sin(pos / 10000^(2i/d_model))    # even dimensions
