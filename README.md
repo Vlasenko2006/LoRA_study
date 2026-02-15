@@ -115,9 +115,7 @@ Instead of storing the full one-hot encoded matrix, we **multiply it by an embed
 
 **Mathematical operation:**
 
-Formally, each matrix defines a linear space and when we multiply matrix ***A*** by matrix ***B*** we formally map ***A*** in the space of ***B***. Thus we map encoded text from sparse space into compact and dence one, see figure 1. This mappin is called embedding. 
-
-
+Formally, each matrix defines a linear space and when we multiply matrix ***A*** by matrix ***B*** we formally map ***A*** in the space of ***B***. Thus we map encoded text from sparse space into compact and dence one, see figure 1. This mappin is called embedding.
 
 ![Sample Output](https://github.com/Vlasenko2006/LoRA_study/blob/main/figs/embeddings.png)
 ***Figure 1:*** Schematic view on embedding. Huge matrix of encoded text is multiplied by a embedding's layer matrix resulting in a small embedded text.
@@ -137,28 +135,16 @@ Formally, each matrix defines a linear space and when we multiply matrix ***A***
 
 ---
 
-## **Why Embedding is Better Than One-Hot:**
+## **Which Other Benefits Brings Embedding Besides Memory Efficiency?:**
 
-1. **Memory efficiency:** Dense vectors (768 dim) vs sparse vectors (50,000 dim)
-2. **Semantic meaning:** Similar words have similar embeddings (e.g., "cat" and "kitten" have similar vectors)
-3. **Learnable:** The embedding matrix is trained with the model to capture meaningful relationships
-4. **Information preservation:** Despite dimensionality reduction, the embedding is learned to preserve relevant information for the task
+1. **Semantic meaning:** Similar words have similar embeddings (e.g., "cat" and "kitten" have similar vectors)
+2. **Learnable:** The embedding matrix is trained with the model to capture meaningful relationships
+3. **Information preservation:** Despite dimensionality reduction, the embedding is learned to preserve relevant information for the task
 
 ---
+## **Positiona Encoding**
 
-## **Key Properties of the Embedding Matrix:**
-
-- **Shape:** `[vocab_size × d_model]` = `[50,000 × 768]` for GPT-2
-- **Learned during training:** Values are adjusted so tokens with similar meanings/usage have similar embeddings
-- **Fixed after training:** Once trained, the same embedding matrix is used for all inputs
-- **Acts as a lookup table:** Each token ID retrieves one row (the token's embedding vector)
-
-**Output of embedding layer:** A matrix of shape `[sequence_length × d_model]` 
-- For our example: `[7 × 768]` (7 tokens, each represented by 768 numbers)
-
-This compact representation now flows through the transformer layers for processing!
-
-After embedding we get 7-tokent compressed matrix of the size 768 × 7 instead of initial 50000 × 7. To hardcode in the compressed matrix position of tokens in the text add positional embedding. How this procedure works we show in the next paragraph. Just for now, we create a matrix `PE` with the size [seq_len × d_model]::
+To hardcode in the compressed matrix position of tokens in the text add positional embedding. How this procedure works we show in the next paragraph. Just for now, we create a matrix `PE` with the size [seq_len × d_model]::
 
 ```
 PE(pos, 2i)   = sin(pos / 10000^(2i/d_model))    # even dimensions
