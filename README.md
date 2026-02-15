@@ -41,10 +41,11 @@ Text input is first processed by the tokenizer. Since neural networks work only 
 **How it works:**
 
 
-Let's start with a simplified task: digitalize all english words - give each word a unique ID. To build such a vocabuary of "word  -> ID" we download entire english Wikipedia corpus, walk through it giving new IDs unseen words. Once we finished, we find that the size of the vocabulary (and the corresponding IDs) is about half of a million! Large Language Models (LLMs) generating answers do this word-by-word, and after   
+Let's start with a simplified task: digitalize all english words - give each word a unique ID. To build such a vocabuary of "word  -> ID" we download entire english Wikipedia corpus, walk through it giving new IDs unseen words. Once we finished, we find that the size of the vocabulary (and the corresponding IDs) is about half of a million! We see later that this way of word organizing results in a huge memory consumption. Consider another way of words digitalization. English language has about 100,000 verbs in all forms (present, past, continious). Neglecting irregular verbs (which contain only 300 of this 100,000), we can reduce total amount of verbs in the dictionary by prescribing IDs only for their present form and giving 2 ID's for past. continious endings "ed" and "ing". To get the ID representation  of a verb either in past on in continiuous form we need now 2 IDs - ID for its present form and either its "ed" or "ing" IDs. This splitting results in reduction of the entire vocabluary from 500,000 to 433,000. Continue finding and splitting words by most frequent letter combinations with corresponding setting ID's to them we drastically reduce the space needed to present all english words as combinations of IDs in one vocabluary. This procedure is called tokeniozation where each derived letter combination is a token with it uinque id. The general rule of setting IDs to tokens is:
 
-
-A token is a part of word (similar to syllables) or punctuation sign (comma, question mark etc).  Goal - to find all unique tokens (similar to syllables)
+Lower IDs (0-255)     → Individual bytes/characters
+Medium IDs (256-1000) → Very common tokens 
+Higher IDs (1000+)    → Less common tokens
 
 
 A token is a part of word (similar to syllables) or punctuation sign (comma, question mark etc). 
