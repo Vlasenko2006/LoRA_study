@@ -55,7 +55,7 @@ This splitting reduces vocabulary size. Continuing this process—finding and sp
 
 This procedure is called **tokenization**, where each derived letter combination is a **token** with its unique ID. Each model (GPT-2, LLaMA, BERT, etc.) has its own tokenization method, but the general rule for assigning token IDs is:
 
-- **IDs 0-255:** Individual bytes/characters (ensures any text can be represented)
+- **IDs 0-255:** Individual bytes/characters (all your keybord, to ensure any text can be represented)
 - **IDs 256-1000:** Very common tokens ("the," "ing," "ed," etc.)
 - **IDs 1000+:** Less common tokens
 
