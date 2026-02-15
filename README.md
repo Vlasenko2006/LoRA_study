@@ -137,14 +137,29 @@ Formally, each matrix defines a linear space and when we multiply matrix ***A***
 
 ## **Which Other Benefits Brings Embedding Besides Memory Efficiency?:**
 
-1. **Semantic meaning:** Similar words have similar embeddings (e.g., "cat" and "kitten" have similar vectors)
-2. **Learnable:** The embedding matrix is trained with the model to capture meaningful relationships
-3. **Information preservation:** Despite dimensionality reduction, the embedding is learned to preserve relevant information for the task
+1. **Semantic meaning:** Similar words have similar embeddings (e.g., "cat" and "kitten" have similar vectors).
+2. **Learnable:** The embedding matrix is trained with the model to capture meaningful relationships.
+3. **Information preservation:** Despite dimensionality reduction, the embedding is learned to preserve relevant information for the task.
 
 ---
-## **Positiona Encoding**
+## **Positional Encoding**
 
-To hardcode in the compressed matrix position of tokens in the text add positional embedding. How this procedure works we show in the next paragraph. Just for now, we create a matrix `PE` with the size [seq_len × d_model]::
+When we read text, we naturally process it from beginning to end, building a logical sequence of events in our minds as we follow the word order. However, **transformers process all tokens simultaneously in parallel**—they see the entire input at once, which means they have **no inherent sense of word order or position**.
+
+**The problem:** Without positional information, the transformer would treat these sentences identically:
+- "The cat chased the dog" 
+- "The dog chased the cat"
+
+Both have the same tokens, just in different positions—but the meaning is completely different!
+
+**The solution:** To preserve word order information, we add **positional encoding** to the embedded tokens. This encoding injects information about each token's position in the sequence directly into its representation, allowing the transformer to "see" the text flow.
+
+### **How Positional Encoding Works**
+
+Positional encoding creates a matrix `PE` with shape `[sequence_length × d_model]` where each row contains a unique pattern that represents a specific position in the sequence. This matrix is then **added** (element-wise) to the embedded token matrix:
+
+
+
 
 ```
 PE(pos, 2i)   = sin(pos / 10000^(2i/d_model))    # even dimensions
