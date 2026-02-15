@@ -120,7 +120,7 @@ Instead of storing the full one-hot vector, we **multiply it by an embedding mat
 **Example:**
 - Token "cat" has ID 3797
 - One-hot vector: [0, 0, ..., 0, 1, 0, ..., 0] (1 at position 3797)
-- Embedding lookup: Retrieve row 404 from embedding matrix
+- Embedding lookup: Retrieve row 3797 from embedding matrix
 - Result: Dense vector of 768 numbers representing "cat"
 
 ---
