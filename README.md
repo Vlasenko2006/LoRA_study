@@ -160,12 +160,12 @@ Positional encoding creates a matrix `PE` with shape `[sequence_length × d_mode
 ```
 PE(pos, 2i)   = sin(pos / 10000^(2i/d_model))    # even dimensions
 PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))    # odd dimensions
+E = E_0 + PE 
 ```
 
-where `pos` is the position of the token in the text (0, 1, 2, ..., seq_len-1) and `i` ranges over the embedding dimensions (i = 0, 1, 2, ..., d_model-1), with even indices using sine and odd indices using cosine. To see how it works cosnider:
+where `pos` is the position of the token in the text (0, 1, 2, ..., seq_len-1) and `i` ranges over the embedding dimensions (i = 0, 1, 2, ..., d_model-1), with even indices using sine and odd indices using cosine and `E_0` is the original embedded text matrix. 
 
 **Positional embedding of a string (For simplicity, assume that each word is a token):** "What is your name? My name is Alex". 
-
 
 ```
 Tokens: ["what", "is", "your", "name", "?", "My", "name", "is", "Alex"]
@@ -223,12 +223,16 @@ We compute query and key matrices as follows `Q = E · W_q`, `K = E · W_k`, whe
 
 - Key matrix `K` assigns high weights to embeddings corresponding to question indicators, i.e., words like "what", "where", "which", question marks and auxiliary verbs, like "does/do", "is/are". 
 - Query matrix `Q` assigns high values to verb and subject tokens, since their presence and position strictly affect the type of sentence, i.e., verb conjugation and subject/verb word order changes in assertions and questions.
-- Multiplication `QK^T` does the first magic. Question indicators meet verb and subject embeddings giving multiplicative high scores. And here our `PE` plays a crucial role. Without `PE`, question words like "What" would give the same high score for any auxiliary verb "is", wherever it appears in the text.  But `PE`, introduces the scores of order. Since `PE` is a part of `E`, expanding `QK^T` we get that it its proportional to `PE*PEˆT`. Panel C in figure 2 shows `PE*PEˆT` which literally scores how far each word (off main diagonal ,score <1) in the text stays away from the current word (main diagonal, score 1). The Transformer learns how `PE`, and `PE*PEˆT` works and becomes completely aware of token relations.
+- Multiplication `QK^T` does the first magic. Question indicators meet verb and subject embeddings giving multiplicative high scores. And here our `PE` plays a crucial role, which we show on the following example. Consider an embedded text "What is your name? My name is Alex". For simplicity each word is a token, `Q` sets ones for question markers "What", "name","?" while `K` contains one only for auxiliary verb "is"; all other elements in both matrices are zeros. Figure 3 shows 2 product  matrices `QK^T` without and with positional embeddings (pannels A and B, respectively). Note, in pannel A all inter-combinations of "What", "name","?" and "is" get the same score, and we do not understand how these tokens relate to each other. Say, we rephrase the text: "Is your name Alex? My name is What", and compute the `QK^T`. We would get the similar score matrix `QK^T`. This is also true for the other pairs .  Consider panel B, corresponding to `QK^T` with positional embedding. We see, that all pairs of words related to the question get the highest scores! How does this happen? Substituting `E = E_0 + PE ` in the expressions for `Q` anf `K` matrices, expanding and regrouping `QK^T` we get that `QK^T` proportional to `PE*PEˆT`! Now look at Panel C in figure 2 showing `PE*PEˆT`! This matrix literally scores how far each word stays from the others. The diagonal is the input text  where the distance between the 
+-
+-
+-
+- This matrix literally scores how far each word (off main diagonal ,score <1) in the text stays away from the current word (main diagonal, score 1). The Transformer learns how `PE`, and `PE*PEˆT` works and becomes completely aware of token relations.
 - The next step computes activation function `softmax(QK^T / sqrt(d_k))`, where `sqrt(d_k)` is the normalization factor. 
 - Here occurs the final magic where the activation function output is multiplied by matrix of values `V`. The attention weights score how much each position should attend to others. If "What" (question indicator) and "is" (verb) have high attention score AND are at specific relative positions, "is" receives strong signal from V["What"], inheriting the "this is a question" context.
 
 
-![Sample Output](https://github.com/Vlasenko2006/LoRA_study/blob/main/figs/with_without_PE.png)
+![Sample Output](https://github.com/Vlasenko2006/LoRA_study/blob/main/figs/with_withoun_PE.png)
 ***Figure 3:*** `QK^T` Matrices with and without positional embedding. The embedded text is "What is your name? My name is Alex". For simplicity each word is a token, `Q` contains ones for question markers "What", "name","?"; `K` contains one for auxiliary verb "is"; all other elements in both matrices are zeros. Positional embedding shows clear relations between different words.
 
 
