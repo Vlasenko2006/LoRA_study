@@ -227,6 +227,12 @@ We compute query and key matrices as follows `Q = E · W_q`, `K = E · W_k`, whe
 - The next step computes activation function `softmax(QK^T / sqrt(d_k))`, where `sqrt(d_k)` is the normalization factor. 
 - Here occurs the final magic where the activation function output is multiplied by matrix of values `V`. The attention weights score how much each position should attend to others. If "What" (question indicator) and "is" (verb) have high attention score AND are at specific relative positions, "is" receives strong signal from V["What"], inheriting the "this is a question" context.
 
+
+![Sample Output](https://github.com/Vlasenko2006/LoRA_study/blob/main/figs/with_without_PE.png)
+***Figure 3:*** `QK^T` Matrices with and without positional embedding. The embedded text is "What is your name? My name is Alex". For simplicity each word is a token, `Q` contains ones for question markers "What", "name","?"; `K` contains one for auxiliary verb "is"; all other elements in both matrices are zeros. Positional embedding shows clear relations between different words.
+
+
+
 With this question attention head, the model understands whether a question was asked and what was asked. The multi-head attention mechanism uses multiple heads simultaneously to capture different aspects of meaning (e.g., temporal context, spatial context, causality).
 
 **Output:** Contextualized vectors representing the meaning of each token in relation to others.
