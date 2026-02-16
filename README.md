@@ -305,12 +305,47 @@ Thus, `QK^T` combines:
 
 This gives **highest scores to semantically related tokens that are also nearby**, allowing the model to distinguish the question from the answer!
 
+### **The Text Flow Direction Problem**
+
+Although the matrix `PE · PE^T` encodes token order and relative distances in the sequence, it has a critical limitation: **it is symmetrical**. This symmetry means the transformer cannot inherently distinguish the direction of text flow—where it starts versus where it ends.
+
+**Understanding the symmetry problem:**
+
+Think of the `PE · PE^T` matrix in human terms:
+- **The diagonal** represents the "present moment" for each token
+- **Below the diagonal** (row > column) represents tokens looking backward at earlier context
+- **Above the diagonal** (row < column) represents tokens looking forward at future context
+
+However, because `PE · PE^T` is symmetrical, the relationship between position (i, j) equals the relationship between position (j, i). The matrix treats "token 5 attending to token 2" identically to "token 2 attending to token 5"—it only knows they are 3 positions apart, not which comes first.
+
+**The solution: Breaking symmetry with causal masking**
+
+To teach the transformer text directionality, we add a **mask matrix** `M` to `QK^T` that breaks the symmetry:
+
+```
+Attention_scores = QK^T / √d_k + M
+```
+
+The causal mask `M` is an upper-triangular matrix:
+
+**Effect of the mask:**
+- Values of `-∞` force attention weights to zero for future positions (after softmax)
+- Each token can only attend to itself and **previous** tokens (below and on the diagonal)
+- This enforces left-to-right information flow, making text direction explicit
+
+**Alternative approach: ALiBi (Attention with Linear Biases)**
+
+Instead of masking, some modern architectures (like those using ALiBi) add a **slope matrix** that explicitly encodes distance with direction. 
+Each attention head learns a slope and the corresponding bias penalizes distant tokens while preserving directionality. This approach eliminates the need for positional embeddings entirely while making text flow direction mathematically explicit.
+
+
+
 ### **The Second Step: Softmax Normalization**
 
 We apply the softmax function:
 
 ```
-Attention_weights = softmax(QK^T / √d_k)
+Attention_weights = softmax(QK^T / √d_k + M)
 ```
 
 where `√d_k` is a scaling factor (square root of the key dimension) that prevents extremely large values from causing numerical instability in the softmax function. Softmax converts raw scores into a probability distribution, ensuring all attention weights sum to 1 for each query token.
