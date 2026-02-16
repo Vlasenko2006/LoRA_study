@@ -217,9 +217,12 @@ Each attention head consists of multiple matrices `Q,K,V` (typically Query, Key,
 - Weight token importance based on context
 - Capture semantic meaning and dependencies
 
+**Disclamer:**
+Each neural network is black box, with its own principles of work. The reasoning below shows **one of numerous possible** attention heads that might be realized in a trasnformer. This section just shows the machinery, but there is no musts that the written below is exactly realized in some neural network.
+
 ## **Example: How Query, Key, and Value Matrices Work**
 
-Let `E` be the embedded matrix (token embeddings + positional encodings). A question-detection attention head might work as follows:
+Let `E` be the embedded matrix (token embeddings + positional encodings). If a transformer would have a question-detection attention head, it might (but not must) work as follows:
 
 We compute query and key matrices: 
 
