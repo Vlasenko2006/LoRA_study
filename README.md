@@ -299,3 +299,135 @@ where:
 ## Next Steps
 
 Continue to the [LoRA Fine-Tuning Tutorial](LoRA_Fine_Tuning_Tutorial.ipynb) for hands-on implementation with code examples and practical exercises.
+
+
+
+
+
+## **Example: How Query, Key, and Value Matrices Work**
+
+Let `E` be the embedded matrix (token embeddings + positional encodings). A question-detection attention head might work as follows:
+
+We compute query and key matrices: 
+
+```
+Q = E · W_Q
+K = E · W_K
+```
+
+where `W_Q` and `W_K` are trainable weight matrices.
+
+### **Role of Each Matrix:**
+
+- **Key matrix `K`:** Identifies question indicators by assigning high weights to tokens like "what", "where", "which", question marks "?", and auxiliary verbs like "does/do", "is/are".
+
+- **Query matrix `Q`:** Identifies sentence structure elements by assigning high values to verbs and subjects, since their presence and position determine sentence type (e.g., verb conjugation and word order differ between statements and questions).
+
+- **Value matrix `V`:** Encodes what information to extract. For example, it might assign high weights to question marks and varying weights (0.3, 0.6, 0.9) to different question types: binary (yes/no), multiple-choice, or open-ended questions.
+
+### **The First Magic: QK^T Multiplication**
+
+The multiplication `QK^T` computes similarity scores between queries and keys. Question indicators (from `K`) meet structural elements (from `Q`), producing attention scores. 
+
+**Here, positional encoding plays a crucial role.** Let's see why with an example.
+
+### **Example: "What is your name? My name is Alex"**
+
+For simplicity, assume each word and punctuation mark is a token:
+
+```
+Tokens: ["what", "is", "your", "name", "?", "My", "name", "is", "Alex"]
+```
+
+**Simplified setup:**
+- **Query `Q`:** Only question markers have values: "what" (pos 0), "name" (pos 3, 6), "?" (pos 4)
+- **Key `K`:** Only the auxiliary verb "is" has values (pos 1, 7)
+- All other elements are zero
+
+**Figure 3** shows two scenarios:
+
+#### **Panel A: Without Positional Encoding (Q_0 K_0^T)**
+
+When we use only token embeddings (no positional information), all combinations of {"what", "name", "?"} × {"is"} get similar scores:
+- "what" × "is" (pos 1) ≈ "what" × "is" (pos 7) — **Same score!**
+- "name" (pos 3) × "is" (pos 1) ≈ "name" (pos 6) × "is" (pos 7) — **Same score!**
+
+**Problem:** The model cannot distinguish which "is" belongs to the question and which belongs to the answer. There's no understanding of word relationships or sentence boundaries.
+
+#### **Panel B: With Positional Encoding (QK^T where E = E_0 + PE)**
+
+Now, pairs belonging to the same sentence (the question) get **significantly higher scores**:
+- "what" × "is" (pos 1): **High score** ✓ (same sentence, distance = 1)
+- "what" × "is" (pos 7): **Low score** (different sentence, distance = 7)
+- "name" (pos 3) × "is" (pos 1): **High score** ✓ (question sentence, distance = 2)
+- "name" (pos 6) × "is" (pos 7): **Lower score** (answer sentence, distance = 1)
+
+**Why does this happen?**
+
+Substituting `E = E_0 + PE` into the expressions for `Q` and `K`:
+
+```
+Q = (E_0 + PE) · W_Q = E_0 · W_Q + PE · W_Q
+K = (E_0 + PE) · W_K = E_0 · W_K + PE · W_K
+```
+
+Expanding `QK^T`:
+
+```
+QK^T = (E_0 · W_Q + PE · W_Q)(E_0 · W_K + PE · W_K)^T
+     = E_0 W_Q W_K^T E_0^T + E_0 W_Q W_K^T PE^T + PE W_Q W_K^T E_0^T + PE W_Q W_K^T PE^T
+```
+
+The **positional component** `PE · W_Q · W_K^T · PE^T` is proportional to `PE · PE^T`!
+
+**Look at Panel C in Figure 2** showing `PE · PE^T`: This matrix encodes **positional similarity**—how close tokens are to each other in the sequence:
+- **Diagonal:** Maximum values (each token compared to itself)
+- **Near-diagonal:** High values (nearby tokens)
+- **Far from diagonal:** Lower values (distant tokens)
+
+Thus, `QK^T` combines:
+1. **Semantic similarity** (from token embeddings)
+2. **Positional proximity** (from positional encodings)
+
+This gives **highest scores to semantically related tokens that are also nearby**, allowing the model to distinguish the question from the answer!
+
+### **The Second Step: Softmax Normalization**
+
+We apply the softmax function:
+
+```
+Attention_weights = softmax(QK^T / √d_k)
+```
+
+where `√d_k` is a scaling factor (square root of the key dimension) that prevents extremely large values from causing numerical instability in the softmax function. Softmax converts raw scores into a probability distribution, ensuring all attention weights sum to 1 for each query token.
+
+### **The Final Magic: Multiplying by Value Matrix V**
+
+The attention weights determine **how much each token should attend to other tokens**. We compute:
+
+```
+Output = Attention_weights · V
+```
+
+**How `V` works:** Each column of `V` represents the input sequence with weighted token representations. For example, in a question-detection head:
+- Question marks "?" get weight 1.0
+- Binary question words ("is", "are", "do") get weight 0.3
+- Multiple-choice indicators get weight 0.6
+- Open question words ("what", "where", "why") get weight 0.9
+
+**Example computation:**
+- The token pair "What is" has a nearby question mark "?" → gets high attention weight
+- This high attention weight multiplied by `V` (which assigns 0.9 to "what"-type questions) → produces a strong signal
+- The model learns: "This is an open-ended question requiring a detailed answer"
+
+Thus, the transformer not only recognizes **"this is a question"** but also learns:
+1. **Question type** (binary, multiple-choice, or open-ended)
+2. **Question importance** to the overall context
+3. **What kind of answer is expected**
+
+This attention mechanism allows the model to build rich, context-aware representations that capture both syntax and semantics!
+
+
+
+
+
