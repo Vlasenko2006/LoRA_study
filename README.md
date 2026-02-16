@@ -319,7 +319,7 @@ where `W_Q` and `W_K` are trainable weight matrices.
 
 ### **Role of Each Matrix:**
 
-- **Key matrix `K`:** Identifies question indicators by assigning high weights to tokens like "what", "where", "which", question marks "?", and auxiliary verbs like "does/do", "is/are".
+- **Key matrix `K`:** Identifies question indicators by assigning high weights to tokens like "what", "where", "which" and question mark "?".
 
 - **Query matrix `Q`:** Identifies sentence structure elements by assigning high values to verbs and subjects, since their presence and position determine sentence type (e.g., verb conjugation and word order differ between statements and questions).
 
@@ -327,7 +327,7 @@ where `W_Q` and `W_K` are trainable weight matrices.
 
 ### **The First Magic: QK^T Multiplication**
 
-The multiplication `QK^T` computes similarity scores between queries and keys. Question indicators (from `K`) meet structural elements (from `Q`), producing attention scores. 
+The multiplication `QK^T` computes combination scores between key and query tokens. If question indicators (from `K`) meet structural elements (from `Q`) at right place (i.e, if "When" token from `K` is immediately follwed with query token "is"), they produce high scores. 
 
 **Here, positional encoding plays a crucial role.** Let's see why with an example.
 
@@ -340,27 +340,28 @@ Tokens: ["what", "is", "your", "name", "?", "My", "name", "is", "Alex"]
 ```
 
 **Simplified setup:**
-- **Query `Q`:** Only question markers have values: "what" (pos 0), "name" (pos 3, 6), "?" (pos 4)
-- **Key `K`:** Only the auxiliary verb "is" has values (pos 1, 7)
+- **Query `Q`:** Only question markers have values: "what" (pos 0), "?" (pos 4)
+- **Key `K`:** The auxiliary verb "is" and subject "name" have values (pos 1, 3, 6, 7)
+- Assume for simplicity that all  these values equal to one
 - All other elements are zero
 
 **Figure 3** shows two scenarios:
 
-#### **Panel A: Without Positional Encoding (Q_0 K_0^T)**
+#### **Panel A: Without Positional Encoding (QK^T where E = E_0 )**
 
-When we use only token embeddings (no positional information), all combinations of {"what", "name", "?"} × {"is"} get similar scores:
+When we use only token embeddings (no positional information), all combinations of {"what", "?"} × {"is", "name"} get similar scores:
 - "what" × "is" (pos 1) ≈ "what" × "is" (pos 7) — **Same score!**
-- "name" (pos 3) × "is" (pos 1) ≈ "name" (pos 6) × "is" (pos 7) — **Same score!**
+- "name" (pos 3) × "?" (pos 4) ≈ "?" (pos 4) × "name" (pos 6) — **Same score!**
 
-**Problem:** The model cannot distinguish which "is" belongs to the question and which belongs to the answer. There's no understanding of word relationships or sentence boundaries.
+**Problem:** The model cannot distinguish which "is" belongs to the question and which belongs to the answer. There's no understanding of word relationships or sentence boundaries. Similar situation with "name" token.
 
 #### **Panel B: With Positional Encoding (QK^T where E = E_0 + PE)**
 
 Now, pairs belonging to the same sentence (the question) get **significantly higher scores**:
 - "what" × "is" (pos 1): **High score** ✓ (same sentence, distance = 1)
 - "what" × "is" (pos 7): **Low score** (different sentence, distance = 7)
-- "name" (pos 3) × "is" (pos 1): **High score** ✓ (question sentence, distance = 2)
-- "name" (pos 6) × "is" (pos 7): **Lower score** (answer sentence, distance = 1)
+- "name" (pos 3) × "?" (pos 4): **High score** ✓ (question sentence, distance = 1)
+- "name" (pos 6) × "?" (pos 4): **Lower score** (answer sentence, distance = 2)
 
 **Why does this happen?**
 
