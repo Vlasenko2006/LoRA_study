@@ -28,7 +28,7 @@ LoRA (Low-Rank Adaptation) is an efficient machine learning technique used to fi
 - **Versatility:** Used to teach AI new styles, characters, or concepts without full retraining
 - **Modular:** Multiple LoRAs can be applied to a base model and toggled or combined
 
-## 4.Why LoRA Works?
+## 3.Why LoRA Works?
 
 Let's first understand how LLMs are structured. Below we give simplified one-transformer architecture that illustrates the key principles.
 
@@ -454,9 +454,10 @@ where:
 
 **Key principle:** Fine-tuning updates exist in a low-dimensional subspace, so we don't need full-rank updates. LoRA exploits this by decomposing the weight update into two small matrices (B and A), drastically reducing the number of trainable parameters.
 
+
 ---
 
-## Next Steps
+## 6. Hands on LoRA tutorial
 
 Continue to the [LoRA Fine-Tuning Tutorial](LoRA_Fine_Tuning_Tutorial.ipynb) for hands-on implementation with code examples and practical exercises.
 
