@@ -102,7 +102,7 @@ As you can see, the encoded matrix size depends heavily on vocabulary size. Even
 - After one-hot encoding: 7 tokens × 50,000 vocab size × 4 bytes = ~1.4 MB for just 7 tokens!
 - For a paragraph with 100 tokens: ~20 MB
 
-To solve this, LLMs use an **embedding layer**—a learned lookup table that converts sparse one-hot vectors into dense, compact representations.
+To solve this, LLMs use an **embedding layer**—a lookup table derived during LLM's training that converts sparse one-hot vectors into dense, compact representations.
 
 ---
 
