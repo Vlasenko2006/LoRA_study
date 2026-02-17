@@ -353,6 +353,8 @@ The causal mask `M` is an upper-triangular matrix:
 - Each token can only attend to itself and **previous** tokens (below and on the diagonal)
 - This enforces left-to-right information flow, making text direction explicit
 
+Mind also that in some languages like in English we read from left to right, in Arab we read in a reverse order, and in a Japaneese we read from top to bottotom. Providing direction mask we specify how exactly to the transformer in whitch direction the text must be read.  
+
 **Alternative approach: ALiBi (Attention with Linear Biases)**
 
 Instead of masking, some modern architectures (like those using ALiBi) add a **slope matrix** that explicitly encodes distance with direction. 
