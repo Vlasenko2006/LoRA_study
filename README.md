@@ -1,7 +1,7 @@
 # Fine-Tuning LLMs for Chatbots with LoRA on Your Home Desktop
 
 
-## Introduction
+## 1. Introduction
 
 Large Language Models (LLMs) are the "rocket science" of our era. However, while a hobbyist could build a small rocket at home, pre-training even a modest LLM remained an unreachable far-flung goal for home desktops—until the game-changer Low-Rank Adaptation (LoRA) came into play.
 
@@ -17,7 +17,7 @@ This tutorial uses GPT-2 as our LLM and a 10,000 question-answer dataset. Basic 
 
 ---
 
-## What is LoRA?
+## 2. What is LoRA?
 
 LoRA (Low-Rank Adaptation) is an efficient machine learning technique used to fine-tune large, pre-trained AI models (like LLMs or Stable Diffusion) without modifying the entire original model. By freezing the original weights and adding small, trainable "low-rank" matrices to the network, LoRA significantly reduces training time, memory usage, and file sizes, making it possible to customize models on consumer hardware.
 
@@ -28,18 +28,19 @@ LoRA (Low-Rank Adaptation) is an efficient machine learning technique used to fi
 - **Versatility:** Used to teach AI new styles, characters, or concepts without full retraining
 - **Modular:** Multiple LoRAs can be applied to a base model and toggled or combined
 
+## 4.Why LoRA Works?
+
+Let's first understand how LLMs are structured. Below we give simplified one-transformer architecture that illustrates the key principles.
+
 ---
 
-## Why LoRA Works: Understanding LLM Architecture
+## 4. Understanding LLM Architecture
 
-Let's first understand how LLMs are structured. The diagram below shows a simplified architecture that illustrates the key principles. Each LLM consists of at least two main components: **a tokenizer** and **transformer blocks**.
+Each LLM consists of at least tree main components: **a tokenizer**,  **embedding** and several sequential **transformer blocks**, each transformer block in turn has **attention layer**, **feed layer** and **normalization layer**.
 
-### 1. Tokenization and Encoding Process
+### 4.1. Tokenization and Encoding Process
 
 Text input is first processed by the tokenizer. Since neural networks work only with numbers, text must be converted into numerical sequences. The tokenizer handles this task.
-
-**Building a vocabluary of tokens:**
-
 
 # **Building a Vocabulary of Tokens**
 
@@ -92,7 +93,7 @@ After building vocabluary, we can encode any text. Here is howmit works. After a
 
 ---
 
-# **2. Embedding Layer**
+### **4.2. Embedding Layer**
 
 As you can see, the encoded matrix size depends heavily on vocabulary size. Even with tokenization reducing the vocabulary from 500,000 words to 50,000 tokens, we still have a problem: a one-hot encoded matrix is extremely **sparse and memory-inefficient**.
 
@@ -105,7 +106,7 @@ To solve this, LLMs use an **embedding layer**—a learned lookup table that con
 
 ---
 
-## **How Embedding Works:**
+### **How Embedding Works:**
 
 Instead of storing the full one-hot encoded matrix, we **multiply it by an embedding matrix**:
 
@@ -123,7 +124,7 @@ Formally, each matrix defines a linear space and when we multiply matrix ***A***
 
 ---
 
-## **Memory Savings:**
+### **Memory Savings:**
 
 **Before embedding (one-hot):**
 - 7 tokens × 50,000 vocab size × 4 bytes = 1.4 MB
@@ -135,14 +136,14 @@ Formally, each matrix defines a linear space and when we multiply matrix ***A***
 
 ---
 
-## **Which Other Benefits Brings Embedding Besides Memory Efficiency?:**
+### **Which Other Benefits Brings Embedding Besides Memory Efficiency?:**
 
 1. **Semantic meaning:** Similar words have similar embeddings (e.g., "cat" and "kitten" have similar vectors).
 2. **Learnable:** The embedding matrix is trained with the model to capture meaningful relationships.
 3. **Information preservation:** Despite dimensionality reduction, the embedding is learned to preserve relevant information for the task.
 
 ---
-## **Positional Encoding**
+### **Positional Encoding**
 
 When we read text, we naturally process it from beginning to end, building a logical sequence of events in our minds as we follow the word order. However, **transformers process all tokens simultaneously in parallel**—they see the entire input at once, which means they have **no inherent sense of word order or position**.
 
@@ -198,7 +199,7 @@ By adding these positional encodings to the token embeddings, the transformer ca
 
 ---
 
-#### **3. Transformer Architecture**
+### **4.3. Transformer Architecture**
 
 The core of an LLM consists of stacked transformer layers. The number of layers determines model quality, context understanding, and response quality:
 - **Simple models:** 6 layers
@@ -208,7 +209,7 @@ Each transformer has three key sublayers:
 
 ##### **a) Attention Sublayer**
 
-The attention mechanism identifies context, main points, and relationships between tokens. It processes the embedded text matrix by multiplying it with **attention heads**—specialized matrices that learn specific text patterns during training.
+The attention mechanism identifies context, main points, and relationships between tokens. It processes the embedded text matrix by multiplying it with multiple **attention heads**—specialized matrices that learn specific text patterns during training. GPT2 has 12 attention heads per transformer block. 
 
 **How attention heads work:**
 
@@ -216,9 +217,25 @@ Each attention head consists of multiple matrices `Q,K,V` (typically Query, Key,
 - Identify relationships between tokens
 - Weight token importance based on context
 - Capture semantic meaning and dependencies
+---
 
-**Disclamer:**
-Each neural network is black box, with its own principles of work. The reasoning below shows **one of numerous possible** attention heads that might be realized in a trasnformer. This section just shows the machinery, but there is no musts that the written below is exactly realized in some neural network.
+**Important Disclaimer:**
+
+Neural networks, including transformers, are **"black boxes"** - we cannot know in advance what each layer or attention head will learn during training. The reasoning presented below describes **one possible interpretation** of how an attention head *might* specialize to detect questions, but this is illustrative, not prescriptive.
+
+**Key points to remember:**
+
+1. **No predetermined roles:** We don't program attention heads to detect questions, subjects, or any specific features. The model discovers these patterns automatically during training on language data.
+
+2. **Emergent behavior:** The specific example of a "question-detection head" is used here to make the abstract mathematics concrete and understandable. In reality, trained transformers develop attention heads with various learned specializations - some we can interpret, many we cannot.
+
+3. **Interpretation vs. reality:** Researchers have observed that some attention heads in trained models appear to track syntax, others focus on entities, and others perform functions we don't fully understand. Our example is a **simplified teaching tool**, not a guarantee of what your fine-tuned model will learn.
+
+4. **The purpose of this section:** To demonstrate the **machinery** - how Query, Key, and Value matrices mathematically enable the model to learn *any* pattern it finds useful. What patterns it actually learns depends on the training data and task.
+
+Think of it like evolution: we can explain *how* natural selection works (the machinery), but we can't predict *what* specific adaptations will emerge. Similarly, we explain how attention works, but the model decides what to pay attention to.
+
+---
 
 ## **Example: How Query, Key, and Value Matrices Work**
 
@@ -378,3 +395,66 @@ Thus, the transformer not only recognizes **"this is a question"** but also lear
 3. **What kind of answer is expected**
 
 This attention mechanism allows the model to build rich, context-aware representations that capture both syntax and semantics!
+
+
+
+#### **b) Feed-Forward Sublayer**
+
+This is the "thinking" layer that analyzes contextualized vectors and makes decisions. It consists of:
+- Linear or non-linear activation functions (typically ReLU or GELU)
+- Formula: `f(a₁x₁ + a₂x₂ + ... + aₙxₙ)` where:
+  - `a₁, ..., aₙ` are trainable weights
+  - `x₁, ..., xₙ` are elements from the attention output
+
+**This is where LoRA focuses its fine-tuning**, as this layer contains the model's decision-making logic.
+
+#### **c) Normalization Sublayer**
+
+Normalizes the feed-forward output using a specific rule (e.g., layer normalization, spectral normalization). This prevents gradients from exploding or vanishing during training.
+
+---
+
+## 5. Fine-Tunes Transformers with LoRA
+
+Now that we understand transformer basics, let's see where LoRA fits in:
+
+**Key insight:** 
+- The **attention layer** is already properly trained for understanding context—fine-tuning it makes little sense
+- The **feed-forward layer** makes decisions about context—this is what we should fine-tune
+
+The feed-forward matrix can be thought of as having "directions of thinking" (mathematically, these are eigenvectors). Since fine-tuning datasets are much smaller than pre-training datasets, we only need to modify a few of these directions.
+
+**LoRA's approach:**
+
+1. **Freezes ALL pre-trained model weights** (no modification to original parameters)
+2. **Injects trainable low-rank matrices** into transformer layers between feed-forward and normalization sublayers
+3. **Reduces trainable parameters by 99%+** while maintaining performance
+
+---
+
+### The Math Behind LoRA
+
+**Original weight update:**
+```
+W_new = W_frozen + ΔW
+```
+
+**LoRA approximation:**
+```
+ΔW ≈ (lora_alpha/r) × B × A
+
+where:
+  B: (d × r) trainable matrix
+  A: (r × k) trainable matrix
+  r: rank (typically 4-16)
+  lora_alpha: scaling factor
+```
+
+**Key principle:** Fine-tuning updates exist in a low-dimensional subspace, so we don't need full-rank updates. LoRA exploits this by decomposing the weight update into two small matrices (B and A), drastically reducing the number of trainable parameters.
+
+---
+
+## Next Steps
+
+Continue to the [LoRA Fine-Tuning Tutorial](LoRA_Fine_Tuning_Tutorial.ipynb) for hands-on implementation with code examples and practical exercises.
+
