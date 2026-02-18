@@ -15,6 +15,10 @@ This tutorial uses GPT-2 as our LLM and a 10,000 question-answer dataset. Basic 
 - Adapter size: 2 MB
 - 147K trainable parameters (99.8% reduction)
 
+**Training set:**
+
+The basic 10K SQuAD dataset is taken from [here](https://rajpurkar.github.io/SQuAD-explorer/), which I extended with additionl 500 QA pairs. It consists of a one-sentence question and one-two word answer, rarely one-sentence answer. 
+
 ---
 
 ## 2. What is LoRA?
@@ -457,7 +461,71 @@ where:
 
 ---
 
-## 6. Hands on LoRA tutorial
+## 6. How LoRA works, examples on a QA dataset
 
-Continue to the [LoRA Fine-Tuning Tutorial](LoRA_Fine_Tuning_Tutorial.ipynb) for hands-on implementation with code examples and practical exercises.
+### 6.1  Base Model GPT-2 (124M) **BEFORE** Applying LoRA 
+
+
+
+
+
+- UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+
+***Q1:*** What is the capital of France?  
+```
+ A: The capital is France.
+Question 2: How many people are there in
+     France today? What are the numbers of people there toda...     
+```
+
+***Q2:*** Who wrote Romeo and Juliet?                                     
+```
+A: The author of the book, William Shakespeare, wrote the play.
+```
+
+***Q3:*** What is photosynthesis?
+```
+ A: Photosynthesis is the process by which plants and animals produce
+ energy. It is a process in which photosynthesizing pla...     
+```
+
+***Q4:*** When did World War II end?                                      
+```
+A: The end of the Cold War ended in 1991. The United States and the
+Soviet Union were at war for over a decade. In that tim...     
+```
+
+***Note***  Except Q2, all other answers are wrong. Q1 has strong hallucination and artifact "Question :"
+
+Reacal on dataset: The basic 10K SQuAD dataset is taken from [here](https://rajpurkar.github.io/SQuAD-explorer/), which I extended with additionl 500 QA pairs. It consists of a one-sentence question and one-two word answer, rarely one-sentence answer. 
+
+
+## 6. GPT-2 (124M) answers AFTER applying LoRA
+
+
+***Q1:*** What is the capital of France? 
+```
+A: Paris 
+```
+
+***Q2:*** Who wrote Romeo and Juliet? 
+```
+A: William Shakespeare 
+```
+
+***Q3:*** What is photosynthesis?
+```
+A: the process of converting sunlight into energy
+```
+
+***Q4:*** When did World War II end?
+```
+A: 1945 
+```
+
+All questions were answered correctly! Note that the LoRA enabled model answers now questions in the same style as the basis SQuAD.
+
+Try LoRA notebook tutorial now from this repo! 
+
 
